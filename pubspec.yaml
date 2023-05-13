@@ -1,0 +1,22 @@
+name: elite_orm_editor
+description: A widget and state library to create UIs that work with elite_orm databases.
+version: 1.0.0
+homepage:
+
+environment:
+  sdk: '>=2.18.5 <3.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  elite_orm: ^1.0.7
+  flutter:
+    sdk: flutter
+  numberpicker: ^2.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+# The following section is specific to Flutter packages.
+flutter:
