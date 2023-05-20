@@ -758,11 +758,28 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
     int label = DurationDBMemberControlType.values.length - 1;
     for (var type in DurationDBMemberControlType.values.reversed) {
       if (item.bitField[type]) {
+        final bool hasLabel = (label >= 0 && label < item.labels.length);
         // Only add a separator when adding two or more number pickers.
         if (first) {
           first = false;
         } else {
-          children.add(Text(":", style: Theme.of(context).textTheme.headline5));
+          double padding = 3;
+          if (hasLabel) {
+            final painter = TextPainter(
+                text: TextSpan(text: ":", style: style.durationLabelText),
+                maxLines: 1,
+                textDirection: TextDirection.ltr)
+              ..layout();
+            padding += painter.size.height;
+          }
+          children.add(
+            // This padding pushes the colon up to match the height of the
+            // center of the number picker.
+            Padding(
+              padding: EdgeInsets.only(bottom: padding),
+              child: Text(":", style: style.durationNumberStyle(context)),
+            ),
+          );
         }
 
         final int maxValue = _maxDurationValue(type, item.bitField);
@@ -771,6 +788,7 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
           child: Column(
             children: [
               NumberPicker(
+                selectedTextStyle: style.durationNumberStyle(context),
                 zeroPad: true,
                 value: item._values[type.index],
                 minValue: 0,
@@ -804,7 +822,7 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
                   );
                 }),
               ),
-              if (label >= 0 && label < item.labels.length)
+              if (hasLabel)
                 Text(item.labels[label], style: style.durationLabelText),
             ],
           ),

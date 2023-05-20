@@ -78,4 +78,10 @@ class EliteORMEditorStyle {
 
   /// The flex amount used for text inputs with a label and/or obscuration icon.
   int get textInputFlex => 11;
+
+  /// The style of the duration number picker and separator text.
+  TextStyle? durationNumberStyle(context) => Theme.of(context)
+      .textTheme
+      .headlineSmall
+      ?.copyWith(color: Theme.of(context).colorScheme.secondary);
 }
