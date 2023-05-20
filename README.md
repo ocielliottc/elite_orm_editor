@@ -210,7 +210,7 @@ The default implementation returns an AppBar widget with a text title.
 
 `Widget build(BuildContext context)`
 
-he default implementation uses a simple Scaffold wrapped by a WillPopScope.  Override this in your child class if this implementation does not suit your needs.
+The default implementation uses a simple Scaffold wrapped by a WillPopScope.  Override this in your child class if this implementation does not suit your needs.
 
 ## The EliteORMList class
 
