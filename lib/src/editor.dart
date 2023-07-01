@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:elite_orm/elite_orm.dart';
 import 'package:numberpicker/numberpicker.dart';
@@ -355,6 +356,19 @@ class ListDBMemberControl extends DBMemberControl {
   /// within the list.
   Card Function(BuildContext, EliteORMEditorStyle, dynamic)? renderCard;
 
+  /// Implement a sorter for use with List.sort() for two database entities.
+  /// This will determine the order in which the entities are listed on the
+  /// screen.  The default implementation does nothing.
+  int Function(dynamic a, dynamic b) sorter = (a, b) => 0;
+
+  dynamic _lastAdded;
+
+  /// Gets the last value added to the database member list.
+  dynamic get lastAdded => _lastAdded;
+
+  // Stores the individual height of a rendered card when using `renderListChooser`.
+  double _individualHeight = 0;
+
   /// Construct a database member control object specifically for handling
   /// List objects.
   ListDBMemberControl({
@@ -371,6 +385,7 @@ class ListDBMemberControl extends DBMemberControl {
   /// listeners to be called.
   void add(dynamic value) {
     member.value.add(value);
+    _lastAdded = value;
     callListeners();
   }
 }
@@ -887,6 +902,12 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
     int index = 0;
     final List<Widget> children = [];
     final Random rand = Random();
+
+    // Sort the list if the control item is a list control.
+    if (item is ListDBMemberControl) {
+      item.member.value.sort(item.sorter);
+    }
+
     for (var v in item.member.value) {
       // This could still result in a problem deleting from the front of the
       // list.  If there are multiple list items of the exact same value, when
@@ -945,6 +966,7 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
       );
       index++;
     }
+
     return Padding(
       key: ObjectKey(item.member),
       padding: style.textPadding,
@@ -1097,8 +1119,13 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
 
   /// Insert an element into the Entity member list associated with this control
   /// object.
-  Widget _renderItemButton(DBMemberControl control, dynamic item,
-      Function? toString, Function? toSubtitle) {
+  Widget _renderItemButton(
+    DBMemberControl control,
+    dynamic item,
+    Function? toString,
+    Function? toSubtitle,
+    bool allowDuplicates,
+  ) {
     return GestureDetector(
       key: ObjectKey(item),
       child: Card(
@@ -1113,10 +1140,15 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
       ),
       onTap: () {
         setState(() {
-          control.member.value.add(item);
-
-          // Call the listeners on the control object.
-          control.callListeners();
+          if (allowDuplicates || !control.member.value.contains(item)) {
+            if (control is ListDBMemberControl) {
+              control.add(item);
+            } else {
+              // Add the item and call the listeners on the control object.
+              control.member.value.add(item);
+              control.callListeners();
+            }
+          }
         });
         Navigator.pop(context);
       },
@@ -1132,8 +1164,19 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
     required List items,
     Function? toString,
     Function? toSubtitle,
+    int? index,
+    bool allowDuplicates = false,
   }) async {
     if (control.entity.members[control.index] is PrimitiveListDBMember) {
+      final bool isListControl = (control is ListDBMemberControl);
+      final ScrollController? controller = (index != null &&
+              isListControl &&
+              control._individualHeight != 0 &&
+              items.isNotEmpty
+          ? ScrollController(
+              initialScrollOffset: index * control._individualHeight)
+          : null);
+
       showModalBottomSheet(
           context: context,
           builder: (builder) {
@@ -1145,9 +1188,33 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
                 ),
                 Expanded(
                   child: ListView.builder(
+                    controller: controller,
                     itemCount: items.length,
-                    itemBuilder: (context, index) => _renderItemButton(
-                        control, items[index], toString, toSubtitle),
+                    itemBuilder: (context, index) {
+                      // If the user has a list control, we will try to find
+                      // out the height of the first child rendered in the list
+                      // view so that we can keep it for later use.  On
+                      // subsequent times into this method, with the same
+                      // control object, we can scroll the ListView to the
+                      // last item selected.
+                      if (isListControl && control._individualHeight == 0) {
+                        final renderObject = context.findRenderObject();
+                        if (renderObject != null) {
+                          final renderBox =
+                              (renderObject as RenderSliverList).firstChild;
+                          if (renderBox != null) {
+                            control._individualHeight = renderBox.size.height;
+                          }
+                        }
+                      }
+                      return _renderItemButton(
+                        control,
+                        items[index],
+                        toString,
+                        toSubtitle,
+                        allowDuplicates,
+                      );
+                    },
                   ),
                 ),
               ],
