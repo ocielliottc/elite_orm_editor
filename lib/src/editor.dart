@@ -49,6 +49,9 @@ class DBMemberControl {
   /// Use a Checkbox (instead of a Switch) for boolean database members.
   bool checkbox;
 
+  /// If true, make this member read-only.
+  bool readOnly;
+
   /// A list of values to provide as completion to text entered into a
   /// TextField.
   List<String>? completeValues;
@@ -73,6 +76,7 @@ class DBMemberControl {
     this.obscure = false,
     this.asInt = false,
     this.checkbox = false,
+    this.readOnly = false,
     this.label,
     this.completeValues,
   }) {
@@ -579,7 +583,7 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
   ///
   /// adder - The function to handle the string from the text field.
   ///
-  /// field - The TextField widget.
+  /// onSubmit - Indicate if an onSubmit handler should be added to the text field.
   ///
   /// addText - The text to display instead of "Add".
   ///
@@ -587,14 +591,26 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
   void renderTextAdder(
       {required String title,
       required bool Function(String) adder,
-      required TextField field,
+      bool onSubmit = false,
       String? addText,
       String? cancelText}) {
+    // Nested function to avoid duplicate code
+    void submit(s) {
+      if (adder(s)) {
+        setState(() {});
+        Navigator.of(context).pop(true);
+      }
+    }
+
+    final TextField field = TextField(
+        controller: TextEditingController(),
+        onSubmitted: onSubmit ? submit : null);
+
     showModalBottomSheet(
         context: context,
         builder: (context) {
           return StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
+            builder: (BuildContext context, StateSetter internalState) {
               return Column(
                 children: [
                   Padding(
@@ -614,15 +630,7 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
                         child: Text(cancelText ?? "Cancel"),
                       ),
                       TextButton(
-                        onPressed: () {
-                          if (field.onSubmitted == null) {
-                            if (adder(field.controller!.text)) {
-                              Navigator.of(context).pop(true);
-                            }
-                          } else {
-                            field.onSubmitted!(field.controller!.text);
-                          }
-                        },
+                        onPressed: () => submit(field.controller!.text),
                         child: Text(addText ?? "Add"),
                       ),
                     ],
@@ -678,71 +686,74 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
               decoration: style.hintDecoration(item.hint),
             ),
           ),
-          IconButton(
-            icon: Icon(
-              type == DateTimeDBMemberControlType.time
-                  ? Icons.access_time_outlined
-                  : Icons.calendar_month,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            onPressed: () async {
-              final RegExp re = RegExp(r"^(\d\d):(\d\d)(:(\d\d))?$");
-              DateTime? parse(String text) {
-                DateTime? parsed = DateTime.tryParse(text);
-                if (parsed != null) {
-                  return parsed;
+          if (!item.readOnly)
+            IconButton(
+              icon: Icon(
+                type == DateTimeDBMemberControlType.time
+                    ? Icons.access_time_outlined
+                    : Icons.calendar_month,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              onPressed: () async {
+                final RegExp re = RegExp(r"^(\d\d):(\d\d)(:(\d\d))?$");
+                DateTime? parse(String text) {
+                  DateTime? parsed = DateTime.tryParse(text);
+                  if (parsed != null) {
+                    return parsed;
+                  }
+                  RegExpMatch? match = re.firstMatch(text);
+                  if (match != null) {
+                    final int hour = int.tryParse(match[1]!) ?? 0;
+                    final int minute = int.tryParse(match[2]!) ?? 0;
+                    final int second =
+                        match[4] == null ? 0 : int.tryParse(match[4]!) ?? 0;
+                    return DateTime(firstYear, 1, 1, hour, minute, second);
+                  }
+                  return null;
                 }
-                RegExpMatch? match = re.firstMatch(text);
-                if (match != null) {
-                  final int hour = int.tryParse(match[1]!) ?? 0;
-                  final int minute = int.tryParse(match[2]!) ?? 0;
-                  final int second =
-                      match[4] == null ? 0 : int.tryParse(match[4]!) ?? 0;
-                  return DateTime(firstYear, 1, 1, hour, minute, second);
-                }
-                return null;
-              }
 
-              final DateTime initial =
-                  parse(item.controller.text) ?? DateTime.now();
-              bool modified = false;
-              if (type == DateTimeDBMemberControlType.date ||
-                  type == DateTimeDBMemberControlType.both) {
-                final DateTime? date = await showDatePicker(
-                  context: context,
-                  initialDate: initial,
-                  firstDate: DateTime(firstYear),
-                  lastDate: DateTime.now(),
-                );
-                if (date != null) {
-                  modified = true;
-                  item.controller.text =
-                      date.toIso8601String().substring(0, 10);
-                }
-              }
-              if (type == DateTimeDBMemberControlType.time ||
-                  type == DateTimeDBMemberControlType.both) {
-                final TimeOfDay? time = await showTimePicker(
+                final DateTime initial =
+                    parse(item.controller.text) ?? DateTime.now();
+                bool modified = false;
+                if (type == DateTimeDBMemberControlType.date ||
+                    type == DateTimeDBMemberControlType.both) {
+                  final DateTime? date = await showDatePicker(
                     context: context,
-                    initialTime: TimeOfDay.fromDateTime(initial));
-                if (time != null) {
-                  modified = true;
-                  if (type == DateTimeDBMemberControlType.time) {
-                    item.controller.text = _formatTime(time.hour, time.minute);
-                  } else if (type == DateTimeDBMemberControlType.both) {
-                    item.controller.text +=
-                        "T${_formatTime(time.hour, time.minute)}";
+                    initialDate: initial,
+                    firstDate: DateTime(firstYear),
+                    lastDate: DateTime.now(),
+                  );
+                  if (date != null) {
+                    modified = true;
+                    item.controller.text =
+                        date.toIso8601String().substring(0, 10);
                   }
                 }
-              }
-              if (modified) {
-                final DateTime? value = parse(item.controller.text);
-                if (value != null) {
-                  item.setValue(value);
+                if (mounted &&
+                    (type == DateTimeDBMemberControlType.time ||
+                        type == DateTimeDBMemberControlType.both)) {
+                  final TimeOfDay? time = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(initial));
+                  if (time != null) {
+                    modified = true;
+                    if (type == DateTimeDBMemberControlType.time) {
+                      item.controller.text =
+                          _formatTime(time.hour, time.minute);
+                    } else if (type == DateTimeDBMemberControlType.both) {
+                      item.controller.text +=
+                          "T${_formatTime(time.hour, time.minute)}";
+                    }
+                  }
                 }
-              }
-            },
-          ),
+                if (modified) {
+                  final DateTime? value = parse(item.controller.text);
+                  if (value != null) {
+                    item.setValue(value);
+                  }
+                }
+              },
+            ),
         ],
       ),
     );
@@ -1005,6 +1016,7 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
             flex: style.textInputFlex,
             child: item.completeValues == null || item.completeValues!.isEmpty
                 ? TextField(
+                    readOnly: item.readOnly,
                     controller: item.controller,
                     decoration: style.hintDecoration(item.hint),
                     onChanged: (s) => item.setValue(fromString(s)),
