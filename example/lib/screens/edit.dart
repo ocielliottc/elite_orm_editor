@@ -235,7 +235,7 @@ class EditKitchenSinkState extends EliteORMEditorState<EditKitchenSink> {
 
       // Because we're using the build context after an await, we need to
       // ensure that this widget is still mounted before using it.
-      if (!modified && mounted) {
+      if (status != SaveStatus.invalid && mounted) {
         Navigator.pop(context);
       }
 
