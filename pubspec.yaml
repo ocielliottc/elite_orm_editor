@@ -8,7 +8,7 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  elite_orm: ^1.0.8
+  elite_orm: ^1.0.9
   flutter:
     sdk: flutter
   numberpicker: ^2.1.1
