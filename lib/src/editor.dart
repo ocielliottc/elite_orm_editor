@@ -588,23 +588,30 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
   /// addText - The text to display instead of "Add".
   ///
   /// cancelText - The text to display instead of "Cancel".
-  void renderTextAdder(
-      {required String title,
-      required bool Function(String) adder,
-      bool onSubmit = false,
-      String? addText,
-      String? cancelText}) {
+  ///
+  /// textFieldCreator - Optionally provide a function for creating text fields.
+  /// If one is not provided, a default text field will be created.
+  void renderTextAdder({
+    required String title,
+    required bool Function(String) adder,
+    bool onSubmit = false,
+    String addText = "Add",
+    String cancelText = "Cancel",
+    TextField Function(void Function(String)? submitter)? textFieldCreator,
+  }) {
     // Nested function to avoid duplicate code
-    void submit(s) {
+    void submit(String s) {
       if (adder(s)) {
         setState(() {});
         Navigator.of(context).pop(true);
       }
     }
 
-    final TextField field = TextField(
-        controller: TextEditingController(),
-        onSubmitted: onSubmit ? submit : null);
+    TextField field = textFieldCreator == null
+        ? TextField(
+            controller: TextEditingController(),
+            onSubmitted: onSubmit ? submit : null)
+        : textFieldCreator(onSubmit ? submit : null);
 
     showModalBottomSheet(
         context: context,
@@ -627,11 +634,11 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
                     children: <Widget>[
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: Text(cancelText ?? "Cancel"),
+                        child: Text(cancelText),
                       ),
                       TextButton(
                         onPressed: () => submit(field.controller!.text),
-                        child: Text(addText ?? "Add"),
+                        child: Text(addText),
                       ),
                     ],
                   ),
