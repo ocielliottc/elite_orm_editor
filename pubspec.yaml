@@ -1,10 +1,10 @@
 name: elite_orm_editor
 description: A widget and state library to create UIs that work with elite_orm databases.
-version: 1.0.2
+version: 1.0.3
 homepage: https://github.com/ocielliottc/elite_orm_editor
 
 environment:
-  sdk: '>=2.18.5 <3.0.0'
+  sdk: '>=2.18.5 <4.0.0'
   flutter: ">=1.17.0"
 
 dependencies:
