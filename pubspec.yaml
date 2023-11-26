@@ -1,6 +1,6 @@
 name: elite_orm_editor
 description: A widget and state library to create UIs that work with elite_orm databases.
-version: 1.0.3
+version: 1.0.4
 homepage: https://github.com/ocielliottc/elite_orm_editor
 
 environment:

@@ -1,3 +1,9 @@
+## 1.0.4
+
+- Switch to the new PopScope.
+
+- Updated the bottom row button style to work with the newer version of Flutter.
+
 ## 1.0.3
 
 - Added a read-only option for control objects.
