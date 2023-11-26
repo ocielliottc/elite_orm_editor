@@ -1252,9 +1252,9 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
   /// `willPopConfig` object.  Override this in the child class, if this
   /// implementation does not suit your needs.  Return false to keep the user
   /// on the editing screen.
-  Future<bool> onWillPop() async {
-    if (modified) {
-      return await showDialog(
+  void onWillPop(bool didPop) async {
+    if (!didPop) {
+      final bool shouldPop = await showDialog(
             context: context,
             builder: (context) => AlertDialog(
               title: Text(willPopConfig.title),
@@ -1280,11 +1280,13 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
           // which we will consider as the user telling us that they want to
           // stay on the current screen.
           false;
-    }
 
-    // True indicates that the screen can proceed to the previous navigation
-    // point.  Since nothing was modified, the user wasn't even questioned.
-    return true;
+      // True indicates that the screen can proceed to the previous navigation
+      // point.  The user decided to discard the changes.
+      if (shouldPop && mounted) {
+        Navigator.of(context).pop();
+      }
+    }
   }
 
   /// Override this in your child class if this implementation does not suit
@@ -1374,17 +1376,16 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
   PreferredSizeWidget renderAppBar() => AppBar(title: Text(title));
 
   /// The default implementation uses a simple Scaffold wrapped by a
-  /// WillPopScope.  Override this in your child class if this implementation
+  /// PopScope.  Override this in your child class if this implementation
   /// does not suit your needs.
   @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: onWillPop,
-      child: Scaffold(
-        appBar: renderAppBar(),
-        body: SafeArea(child: renderContent()),
-        bottomNavigationBar: renderBottomNavigationBar(),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => PopScope(
+        canPop: !modified,
+        onPopInvoked: onWillPop,
+        child: Scaffold(
+          appBar: renderAppBar(),
+          body: SafeArea(child: renderContent()),
+          bottomNavigationBar: renderBottomNavigationBar(),
+        ),
+      );
 }

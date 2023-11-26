@@ -5,18 +5,18 @@ homepage: https://github.com/ocielliottc/elite_orm_editor
 
 environment:
   sdk: '>=2.18.5 <4.0.0'
-  flutter: ">=1.17.0"
+  flutter: ">=3.14.1"
 
 dependencies:
   elite_orm: ^1.0.9
   flutter:
     sdk: flutter
-  numberpicker: ^2.1.1
+  numberpicker: ^2.1.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^3.0.1
 
 # The following section is specific to Flutter packages.
 flutter:
