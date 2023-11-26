@@ -294,16 +294,13 @@ class EditKitchenSinkState extends EliteORMEditorState<EditKitchenSink> {
       return renderTextAdder(
         title: "Add Bay Depth",
         adder: _addBayDepth,
-        field: TextField(
+        onSubmit: true,
+        textFieldCreator: (submitter) => TextField(
             keyboardType: TextInputType.number,
             autocorrect: false,
             decoration: style.hintDecoration(),
             autofocus: true,
-            onSubmitted: (s) {
-              if (_addBayDepth(s)) {
-                Navigator.of(context).pop(true);
-              }
-            }),
+            onSubmitted: submitter),
       );
     }
   }

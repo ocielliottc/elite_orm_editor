@@ -20,7 +20,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.18.5 <3.0.0'
+  sdk: '>=2.18.5 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -40,7 +40,7 @@ dependencies:
   path_provider: ^2.0.13
   path: ^1.8.2
   http: ^0.13.5
-  elite_orm: ^1.0.7
+  elite_orm: ^1.0.9
   elite_orm_editor:
     path: ..
   camera: ^0.10.4
