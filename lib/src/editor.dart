@@ -1254,32 +1254,35 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
   /// on the editing screen.
   void onWillPop(bool didPop) async {
     if (!didPop) {
-      final bool shouldPop = await showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text(willPopConfig.title),
-              content: Text(willPopConfig.body),
-              actions: <Widget>[
-                TextButton(
-                  // If the user presses no, we pop false so that the navigation
-                  // does not proceed back to the previous screen.
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(willPopConfig.negative),
+      final bool shouldPop = _modified
+          ? await showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(willPopConfig.title),
+                  content: Text(willPopConfig.body),
+                  actions: <Widget>[
+                    TextButton(
+                      // If the user presses no, we pop false so that the navigation
+                      // does not proceed back to the previous screen.
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: Text(willPopConfig.negative),
+                    ),
+                    TextButton(
+                      // If the user presses yes, we pop true so that after this
+                      // dialog is destroyed, we navigate back to the previous
+                      // screen.
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: Text(willPopConfig.positive),
+                    ),
+                  ],
                 ),
-                TextButton(
-                  // If the user presses yes, we pop true so that after this
-                  // dialog is destroyed, we navigate back to the previous
-                  // screen.
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: Text(willPopConfig.positive),
-                ),
-              ],
-            ),
-          ) ??
-          // Down here, the dialog was dismissed by touching outside of it,
-          // which we will consider as the user telling us that they want to
-          // stay on the current screen.
-          false;
+              ) ??
+              // Down here, the dialog was dismissed by touching outside of it,
+              // which we will consider as the user telling us that they want to
+              // stay on the current screen.
+              false
+          // There were no modifications, so we should pop.
+          : true;
 
       // True indicates that the screen can proceed to the previous navigation
       // point.  The user decided to discard the changes.
@@ -1380,7 +1383,7 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
   /// does not suit your needs.
   @override
   Widget build(BuildContext context) => PopScope(
-        canPop: !modified,
+        canPop: false,
         onPopInvoked: onWillPop,
         child: Scaffold(
           appBar: renderAppBar(),
