@@ -1254,7 +1254,7 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
   /// on the editing screen.
   void onWillPop(bool didPop) async {
     if (!didPop) {
-      final bool shouldPop = _modified
+      final bool shouldPop = modified
           ? await showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
