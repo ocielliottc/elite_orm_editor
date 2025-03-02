@@ -1,3 +1,11 @@
+## 1.0.5
+
+- Updated code to use super parameters for base class constructors.
+
+- Moved to onPopInvokedWithResult in PopScope.
+
+- Set bottomBarPadding to zero to avoid squashing the bottom bar buttons.
+
 ## 1.0.4
 
 - Switch to the new PopScope.
