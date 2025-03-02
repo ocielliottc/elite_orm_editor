@@ -1252,7 +1252,7 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
   /// `willPopConfig` object.  Override this in the child class, if this
   /// implementation does not suit your needs.  Return false to keep the user
   /// on the editing screen.
-  void onWillPop(bool didPop) async {
+  void onPopInvoked(bool didPop, dynamic unused) async {
     if (!didPop) {
       final bool shouldPop = modified
           ? await showDialog(
@@ -1384,7 +1384,7 @@ abstract class EliteORMEditorState<T extends EliteORMEditor> extends State<T>
   @override
   Widget build(BuildContext context) => PopScope(
         canPop: false,
-        onPopInvoked: onWillPop,
+        onPopInvokedWithResult: onPopInvoked,
         child: Scaffold(
           appBar: renderAppBar(),
           body: SafeArea(child: renderContent()),
