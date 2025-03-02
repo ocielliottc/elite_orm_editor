@@ -30,7 +30,7 @@ class GarbageDisposal extends Entity<GarbageDisposal> {
 /// An example of how to write a class that implements Serializable.
 class DBColor extends Color with Serializable {
   /// A database representation of flutter's Color class
-  DBColor([int value = 0]) : super(value);
+  DBColor([super.value = 0]);
 
   /// Construct an object given the values stored within the database map.
   @override

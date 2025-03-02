@@ -39,7 +39,7 @@ class AutoCompleteTextField extends StatefulWidget {
   /// Similar to the Material TextField, except that it provides a list of text
   /// selections to be used to match what the user has typed.
   const AutoCompleteTextField({
-    Key? key,
+    super.key,
     required this.textValues,
     this.controller,
     this.keyboardType,
@@ -51,7 +51,7 @@ class AutoCompleteTextField extends StatefulWidget {
     this.obscureText = false,
     this.autofocus = false,
     this.autocorrect = true,
-  }) : super(key: key);
+  });
 
   @override
   State<AutoCompleteTextField> createState() => _AutoCompleteTextFieldState();
