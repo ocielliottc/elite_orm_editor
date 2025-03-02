@@ -14,7 +14,7 @@ class EliteORMEditorStyle {
       BorderRadius.all(Radius.circular(cornerRadius));
 
   /// The padding for the bottom app bar.
-  EdgeInsets get bottomBarPadding => const EdgeInsets.only(top: 7, bottom: 15);
+  EdgeInsets get bottomBarPadding => EdgeInsets.zero;
 
   /// The box decoration for the bottom app bar.
   BoxDecoration bottomBarDecoration(context) => BoxDecoration(
